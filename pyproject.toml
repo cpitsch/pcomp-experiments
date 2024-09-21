@@ -7,8 +7,9 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.10, <3.13"
-pcomp = {path = "../pcomp/dist/pcomp-0.1.0-py3-none-any.whl"}
 numpy = "<2.0"
+streamlit = "^1.38.0"
+pcomp = {path = "../pcomp"}
 
 
 [build-system]

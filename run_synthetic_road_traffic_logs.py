@@ -1,4 +1,5 @@
 import pickle
+from argparse import ArgumentParser
 from dataclasses import dataclass
 from pathlib import Path
 from timeit import default_timer
@@ -12,14 +13,33 @@ from pcomp.emd.comparators.permutation_test import (
 )
 from pcomp.utils import import_log
 
-NUM_MP_CORES = 16
+parser = ArgumentParser()
 
 
-LOGS_BASE_PATH = Path("road_traffic_synthetic")
-OUTPUT_BASE_PATH = Path("road_traffic_synthetic_results")
+parser.add_argument(
+    "-s", "--seed", type=int, help="The seed to run the experiments for.", required=True
+)
+parser.add_argument(
+    "-c",
+    "--cores",
+    type=int,
+    help="The number of cores to use for multiprocessing.",
+    required=True,
+)
+args = parser.parse_args()
+
+
+LOGS_BASE_PATH = Path("road_traffic_synthetic", str(args.seed))
+
+if not LOGS_BASE_PATH.exists():
+    raise ValueError(
+        "The event log path does not exist. Please make sure you supplied a valid seed and that the event logs are present."
+    )
+
+OUTPUT_BASE_PATH = Path("road_traffic_synthetic_results", str(args.seed))
 DIST_SIZE = 10_000
 SEED = 1337
-WEIGHTED_TIME_COST = True
+WEIGHTED_TIME_COST = False
 SIGNIFICANCE_LEVEL = 0.05
 
 
@@ -92,7 +112,6 @@ class Instance:
     def path(self) -> Path:
         return (
             OUTPUT_BASE_PATH
-            / str(self.log.seed)
             / ("weighted_time" if self.weighted_time_cost else "normal_time")
             / self.log.identifier
         )
@@ -160,17 +179,15 @@ class Instance:
     def run_and_save_results(self, verbose: bool = True) -> dict[str, Any]:
         start_time = default_timer()
         comparator = self.get_comparator(verbose)
-        _ = comparator.compare()
+        res = comparator.compare()
         end_time = default_timer()
 
         # Save results
         self.path.mkdir(parents=True)
         with open(self.pickle_path, "wb") as f:
-            pickle.dump(comparator, f)
+            pickle.dump(res, f)
 
-        return self.to_result_row(
-            comparator.pval, comparator.logs_emd, end_time - start_time
-        )
+        return self.to_result_row(res.pvalue, res.logs_emd, end_time - start_time)
 
 
 def get_classification_class(
@@ -192,29 +209,18 @@ def main():
     start_time = default_timer()
     logs = get_change_log_settings(LOGS_BASE_PATH)
     instances = [Instance(log_setting, WEIGHTED_TIME_COST) for log_setting in logs]
+    assert not any(instance.pickle_path.exists() for instance in instances)
     instances = [
         instance for instance in instances if not instance.pickle_path.exists()
     ]
-    instances = [instance for instance in instances if instance.log.seed == 1]
 
-    unique_seeds = {instance.log.seed for instance in instances}
-    for seed in unique_seeds:
-        with WorkerPool(NUM_MP_CORES) as p:
-            results = p.map(run_instance, instances, progress_bar=True)
-        df = pd.DataFrame(results)
-        df.to_csv(OUTPUT_BASE_PATH / str(seed) / "summary.csv", index=False)
+    with WorkerPool(args.cores) as p:
+        results = p.map(run_instance, instances, progress_bar=True)
+    df = pd.DataFrame(results)
+    df.to_csv(OUTPUT_BASE_PATH / "summary.csv", index=False)
 
     print(f"Elapsed Time: {default_timer() - start_time}")
 
-    # with WorkerPool(NUM_MP_CORES) as p:
-    #     results = p.map(run_instance, instances, progress_bar=True)
-
-    # df = pd.DataFrame(results)
-    # df.to_csv(OUTPUT_BASE_PATH / "summary.csv", index=False)
-
 
 if __name__ == "__main__":
-    # res = get_change_log_settings(LOGS_BASE_PATH)
-    # print(len(res))
-    # print(res[0])
     main()
