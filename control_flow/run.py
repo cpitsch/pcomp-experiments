@@ -111,13 +111,17 @@ class LogInstance:
             cast(
                 pd.DataFrame,
                 log[
-                    log["case:concept:name"].astype(int).isin(range(*self.log_1_range))
+                    log["case:concept:name"]
+                    .astype(int)
+                    .isin(range(self.log_1_range[0], self.log_1_range[1] + 1))
                 ],
             ),
             cast(
                 pd.DataFrame,
                 log[
-                    log["case:concept:name"].astype(int).isin(range(*self.log_2_range))
+                    log["case:concept:name"]
+                    .astype(int)
+                    .isin(range(self.log_2_range[0], self.log_2_range[1] + 1))
                 ],
             ),
         )
