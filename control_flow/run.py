@@ -336,7 +336,7 @@ def run():
     with WorkerPool(args.cores) as p:
         results = p.map(run_instance, all_instances, progress_bar=True)
     df = pd.DataFrame(results)
-    df.to_csv(OUTPUT_BASE_PATH / "summary.csv")
+    df.to_csv(OUTPUT_BASE_PATH / "summary.csv", index=False)
 
     print(f"Elapsed Time: {default_timer() - start_time}")
 
