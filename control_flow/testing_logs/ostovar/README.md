@@ -1,0 +1,3 @@
+- Each event log has 3000 cases with case IDs 0-2999
+- There is a drift every 1000 cases, so the regions of behavior are:
+    - (0,999), (1000, 1999), (2000, 2999)

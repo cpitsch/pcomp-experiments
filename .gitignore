@@ -1,0 +1,8 @@
+# Event Logs
+*.xes
+*.xes.gz
+control_flow/ceravolo_raw/*.csv
+
+# Results
+*.pkl
+*.pkl.gz
