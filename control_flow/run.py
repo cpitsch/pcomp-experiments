@@ -264,7 +264,8 @@ class PermutationTestInstance(
         end_time = default_timer()
 
         # Save results
-        self.path.mkdir(parents=True)
+        if not self.path.exists():
+            self.path.mkdir(parents=True)
         with open(self.pickle_path, "wb") as f:
             pickle.dump(res, f)
 
@@ -294,7 +295,8 @@ class BootstrapTestInstance(
         end_time = default_timer()
 
         # Save results
-        self.path.mkdir(parents=True)
+        if not self.path.exists():
+            self.path.mkdir(parents=True)
         with open(self.pickle_path, "wb") as f:
             pickle.dump(res, f)
 
