@@ -8,5 +8,7 @@
 #SBATCH --output=control_flow_output.txt
 
 ### Program Code
-cd ~/jupyterlab/pcomp_synthetic_log_runs
-source .venv/bin/activate
+cd ~/jupyterlab/pcomp_experiments/control_flow
+source ../.venv/bin/activate
+
+python run.py --cores ${SLURM_JOB_CPUS_PER_NODE}
