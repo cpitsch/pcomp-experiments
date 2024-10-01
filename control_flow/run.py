@@ -37,7 +37,6 @@ OUTPUT_BASE_PATH = Path("control_flow_results")
 SIGNIFICANCE_LEVEL = 0.05
 DIST_SIZE = 10_000
 SEED = 1337
-MP_CORES = 16
 
 
 OSTOVAR_BASE_PATH = LOGS_BASE_PATH / "ostovar"
@@ -231,6 +230,7 @@ class Instance(ABC, Generic[T, R]):
             "technique": self.technique_name,
             "log_source": self.log_instance.source,
             "log_path": self.log_instance.path.as_posix(),
+            "log_name": self.log_instance.path.name.split(".")[0],
             "has_diff": log_has_drift,
             "pval": pval,
             "logs_emd": logs_emd,
