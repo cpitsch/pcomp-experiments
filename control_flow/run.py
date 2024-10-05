@@ -127,7 +127,7 @@ class LogInstance:
 
     @property
     def source(self) -> str:
-        return self.path.relative_to(LOGS_BASE_PATH).parents[0].name
+        return self.path.relative_to(LOGS_BASE_PATH).parts[0]
 
     @property
     def identifier(self) -> str:
