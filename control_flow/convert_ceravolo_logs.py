@@ -22,7 +22,7 @@ COLUMN_MAPPING = {
 
 
 def main():
-    for csv_path in IN_PATH.glob("*.csv"):
+    for csv_path in IN_PATH.rglob("*.csv"):
         df = pd.read_csv(
             csv_path,
             parse_dates=[INPUT_START_TIMESTAMP_COLUMN, INPUT_COMPLETE_TIMESTAMP_COLUMN],
@@ -30,10 +30,12 @@ def main():
         log = df.rename(columns=COLUMN_MAPPING)
         log["case:concept:name"] = log["case:concept:name"].astype(str)
 
-        log_path = OUT_PATH / (csv_path.with_suffix(".xes.gz").name)
+        log_path = OUT_PATH / (csv_path.with_suffix(".xes.gz").relative_to(IN_PATH))
         log_path.parent.mkdir(parents=True, exist_ok=True)
 
-        write_xes(log, log_path.as_posix())
+        if not log_path.exists():
+            print("Writing", log_path.as_posix())
+            write_xes(log, log_path.as_posix())
 
 
 if __name__ == "__main__":

@@ -1,0 +1,2 @@
+- The event logs have 1000 cases each, with case IDs in 0-999
+- The division of behavior is: 330–330–340
