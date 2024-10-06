@@ -8,6 +8,7 @@ from timeit import default_timer
 from typing import Any, Generic, Literal, TypeVar, cast
 
 import pandas as pd
+import yaml
 from mpire.pool import WorkerPool
 from pcomp.emd.comparators.bootstrap import ControlFlowBootstrapComparator
 from pcomp.emd.comparators.bootstrap.bootstrap_comparator import (
@@ -18,83 +19,17 @@ from pcomp.emd.comparators.permutation_test import (
     PermutationTestComparisonResult,
 )
 from pm4py import read_xes
-
-parser = ArgumentParser()
-parser.add_argument(
-    "-c",
-    "--cores",
-    type=int,
-    help="The number of cores to use for multiprocessing.",
-    required=True,
-)
-args = parser.parse_args()
+from pydantic import BaseModel
 
 LOGS_BASE_PATH = Path("testing_logs")
 
 
+YAML_PATH = Path("log_settings.yaml")
 OUTPUT_BASE_PATH = Path("control_flow_results")
 
 SIGNIFICANCE_LEVEL = 0.05
 DIST_SIZE = 10_000
 SEED = 1337
-
-
-OSTOVAR_BASE_PATH = LOGS_BASE_PATH / "ostovar"
-# The ranges of the event logs that don't contain a drift
-# OSTOVAR_BEHAVIOR_RANGES = [(0, 999), (1000, 1999), (2000, 2999)]
-OSTOVAR_BEHAVIOR_RANGES = [(1, 1000), (1001, 2000), (2001, 2999)]
-OSTOVAR_DRIFT_COMPARISON_RANGES: list[tuple[tuple[int, int], tuple[int, int]]] = [
-    (range_1, range_2)
-    for range_1, range_2 in zip(OSTOVAR_BEHAVIOR_RANGES, OSTOVAR_BEHAVIOR_RANGES[1:])
-]
-# Divide the behavior range in half and compare the halves
-OSTOVAR_NO_DRIFT_COMPARISON_RANGES: list[tuple[tuple[int, int], tuple[int, int]]] = [
-    (
-        (start, floor((end + start) / 2)),
-        (ceil((end + start) / 2), end),
-    )
-    for start, end in OSTOVAR_BEHAVIOR_RANGES
-]
-
-
-BOSE_BASE_PATH = LOGS_BASE_PATH / "bose"
-# The ranges of the event log that dont contain a drift
-BOSE_BEHAVIOR_RANGES = [
-    (1, 1200),
-    (1201, 2400),
-    (2401, 3600),
-    (3601, 4800),
-    (4801, 6000),
-]
-BOSE_DRIFT_COMPARISON_RANGES: list[tuple[tuple[int, int], tuple[int, int]]] = [
-    (range_1, range_2)
-    for range_1, range_2 in zip(BOSE_BEHAVIOR_RANGES, BOSE_BEHAVIOR_RANGES[1:])
-]
-# Divide the behavior range in half and compare the halves
-BOSE_NO_DRIFT_COMPARISON_RANGES: list[tuple[tuple[int, int], tuple[int, int]]] = [
-    (
-        (start, floor((end + start) / 2)),
-        (ceil((end + start) / 2), end),
-    )
-    for start, end in BOSE_BEHAVIOR_RANGES
-]
-
-
-CERAVOLO_BASE_PATH = LOGS_BASE_PATH / Path("ceravolo")
-# The ranges of the event log that dont contain a drift
-CERAVOLO_BEHAVIOR_RANGES = [(0, 499), (500, 999)]
-CERAVOLO_DRIFT_COMPARISON_RANGES: list[tuple[tuple[int, int], tuple[int, int]]] = [
-    (range_1, range_2)
-    for range_1, range_2 in zip(CERAVOLO_BEHAVIOR_RANGES, CERAVOLO_BEHAVIOR_RANGES[1:])
-]
-# Divide the behavior range in half and compare the halves
-CERAVOLO_NO_DRIFT_COMPARISON_RANGES: list[tuple[tuple[int, int], tuple[int, int]]] = [
-    (
-        (start, floor((end + start) / 2)),
-        (ceil((end + start) / 2), end),
-    )
-    for start, end in CERAVOLO_BEHAVIOR_RANGES
-]
 
 
 @dataclass
@@ -131,56 +66,54 @@ class LogInstance:
 
     @property
     def identifier(self) -> str:
-        return f"{self.source}_{self.path.name.split('.')[0]}_{self.log_1_range[0]}-{self.log_1_range[1]}_{self.log_2_range[0]}-{self.log_2_range[1]}"
+        # return f"{self.source}_{self.path.name.split('.')[0]}_{self.log_1_range[0]}-{self.log_1_range[1]}_{self.log_2_range[0]}-{self.log_2_range[1]}"
+        name_without_extensions = self.path.name.split(".")[0]
+        return f"{name_without_extensions}_{self.log_1_range[0]}-{self.log_1_range[1]}_{self.log_2_range[0]}-{self.log_2_range[1]}"
 
 
-def get_ostovar_log_paths() -> list[Path]:
-    return list(OSTOVAR_BASE_PATH.rglob("*.xes.gz"))
+class LogSetting(BaseModel):
+    identifier: str
+    base_path: Path
+    behavior_ranges: list[tuple[int, int]]
 
-
-def get_ostovar_log_instances() -> list[LogInstance]:
-    return [
-        LogInstance(path, has_drift, *comparison_range)
-        for comparison_ranges, has_drift in [
-            (OSTOVAR_DRIFT_COMPARISON_RANGES, True),
-            (OSTOVAR_NO_DRIFT_COMPARISON_RANGES, False),
+    def to_log_instances(self) -> list[LogInstance]:
+        log_paths = list((LOGS_BASE_PATH / self.base_path).rglob("*.xes.gz"))
+        drift_comparison_ranges: list[tuple[tuple[int, int], tuple[int, int]]] = [
+            (range_1, range_2)
+            for range_1, range_2 in zip(self.behavior_ranges, self.behavior_ranges[1:])
         ]
-        for comparison_range in comparison_ranges
-        for path in get_ostovar_log_paths()
-    ]
 
-
-def get_bose_log_paths() -> list[Path]:
-    return list(BOSE_BASE_PATH.rglob("*.xes.gz"))
-
-
-def get_bose_log_instances() -> list[LogInstance]:
-    bose_log_paths = get_bose_log_paths()
-    assert len(bose_log_paths) == 1  # Should only be the normal bose log
-    return [
-        LogInstance(path, has_drift, *comparison_range)
-        for comparison_ranges, has_drift in [
-            (BOSE_DRIFT_COMPARISON_RANGES, True),
-            (BOSE_NO_DRIFT_COMPARISON_RANGES, False),
+        # Divide the behavior range in half and compare the halves
+        no_drift_comparison_ranges: list[tuple[tuple[int, int], tuple[int, int]]] = [
+            (
+                (start, floor((end + start) / 2)),
+                (ceil((end + start) / 2), end),
+            )
+            for start, end in self.behavior_ranges
         ]
-        for comparison_range in comparison_ranges
-        for path in bose_log_paths
-    ]
 
-
-def get_ceravolo_log_paths() -> list[Path]:
-    return list(CERAVOLO_BASE_PATH.rglob("*.xes.gz"))
-
-
-def get_ceravolo_log_instances() -> list[LogInstance]:
-    return [
-        LogInstance(path, has_drift, *comparison_range)
-        for comparison_ranges, has_drift in [
-            (CERAVOLO_DRIFT_COMPARISON_RANGES, True),
-            (CERAVOLO_NO_DRIFT_COMPARISON_RANGES, False),
+        return [
+            LogInstance(path, has_drift, *comparison_range)
+            for comparison_ranges, has_drift in [
+                (drift_comparison_ranges, True),
+                (no_drift_comparison_ranges, False),
+            ]
+            for comparison_range in comparison_ranges
+            for path in log_paths
         ]
-        for comparison_range in comparison_ranges
-        for path in get_ceravolo_log_paths()
+
+
+def parse_yaml_to_log_settings(yaml_path: Path) -> list[LogSetting]:
+    yml = yaml.safe_load(yaml_path.read_text())
+    return [LogSetting.model_validate(v | {"identifier": k}) for k, v in yml.items()]
+
+
+def get_all_log_instances() -> list[LogInstance]:
+    log_settings = parse_yaml_to_log_settings(YAML_PATH)
+    return [
+        log_instance
+        for log_setting in log_settings
+        for log_instance in log_setting.to_log_instances()
     ]
 
 
@@ -194,7 +127,15 @@ class Instance(ABC, Generic[T, R]):
 
     @property
     def path(self) -> Path:
-        return OUTPUT_BASE_PATH / self.log_instance.identifier
+        return (
+            OUTPUT_BASE_PATH
+            / self.log_instance.path.relative_to(LOGS_BASE_PATH).parent
+            / self.log_instance.identifier
+        )
+
+    # @property
+    # def path(self) -> Path:
+    #     return OUTPUT_BASE_PATH / self.log_instance.identifier
 
     @property
     def pickle_path(self) -> Path:
@@ -314,16 +255,8 @@ def get_classification_class(
     return first_part + second_part
 
 
-def run_instance(instance: Instance) -> dict[str, Any]:
-    return instance.run_and_save_results(verbose=True)
-
-
-def run():
-    all_log_instances = (
-        get_ostovar_log_instances()
-        + get_bose_log_instances()
-        + get_ceravolo_log_instances()
-    )
+def get_all_test_instances() -> list[Instance]:
+    all_log_instances = get_all_log_instances()
 
     permutation_test_instances: list[Instance] = [
         PermutationTestInstance(log_instance) for log_instance in all_log_instances
@@ -332,12 +265,38 @@ def run():
         BootstrapTestInstance(log_instance) for log_instance in all_log_instances
     ]
 
-    all_instances: list[Instance] = permutation_test_instances + bootstrap_instances
+    return permutation_test_instances + bootstrap_instances
+
+
+def run_instance(instance: Instance) -> dict[str, Any]:
+    return instance.run_and_save_results(verbose=True)
+
+
+def run():
+    parser = ArgumentParser()
+    parser.add_argument(
+        "-c",
+        "--cores",
+        type=int,
+        help="The number of cores to use for multiprocessing.",
+        required=True,
+    )
+    args = parser.parse_args()
+
+    all_instances = get_all_test_instances()
+    all_instances = [
+        instance for instance in all_instances if not instance.pickle_path.exists()
+    ][-1:]
 
     start_time = default_timer()
     with WorkerPool(args.cores) as p:
         results = p.map(run_instance, all_instances, progress_bar=True)
     df = pd.DataFrame(results)
+
+    csv_path = OUTPUT_BASE_PATH / "summary.csv"
+    if csv_path.exists():
+        old_df = pd.read_csv(csv_path)
+        df = pd.concat([old_df, df])
     df.to_csv(OUTPUT_BASE_PATH / "summary.csv", index=False)
 
     print(f"Elapsed Time: {default_timer() - start_time}")

@@ -1,0 +1,27 @@
+ostovar:
+  base_path: "ostovar"
+  behavior_ranges: [
+    [1, 1000], [1001, 2000], [2001, 2999]
+  ]
+bose:
+  base_path: "bose"
+  behavior_ranges: [
+    [1, 1200], [1201, 2400], [2401, 3600], [3601, 4800], [4801, 6000]
+  ]
+ceravolo_1000:
+  base_path: "ceravolo/sudden_1000"
+  behavior_ranges: [
+    [0,499], [500, 999]
+  ]
+# Skip because 250/2 cases for the non-drift comparison is very little data to work with
+# and might make the results very volatile. Assessing this is not the goal of this experiment
+# ceravolo_500:
+#   base_path: "ceravolo/sudden_500"
+#   behavior_ranges: [
+#     [0, 249], [250, 499]
+#   ]
+ceravolo_recurring_1000:
+  base_path: "ceravolo/recurring_1000"
+  behavior_ranges: [
+    [0, 329], [330, 659], [660, 999]
+  ]
