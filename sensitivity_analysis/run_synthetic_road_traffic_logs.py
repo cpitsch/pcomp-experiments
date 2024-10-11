@@ -26,6 +26,7 @@ parser.add_argument(
     help="The number of cores to use for multiprocessing.",
     required=True,
 )
+parser.add_argument("--weighted-time", action="store_true")
 args = parser.parse_args()
 
 
@@ -39,7 +40,6 @@ if not LOGS_BASE_PATH.exists():
 OUTPUT_BASE_PATH = Path("road_traffic_synthetic_results", str(args.seed))
 DIST_SIZE = 10_000
 SEED = 1337
-WEIGHTED_TIME_COST = False
 SIGNIFICANCE_LEVEL = 0.05
 
 
@@ -208,11 +208,14 @@ def run_instance(instance: Instance) -> dict[str, Any]:
 def main():
     start_time = default_timer()
     logs = get_change_log_settings(LOGS_BASE_PATH)
-    instances = [Instance(log_setting, WEIGHTED_TIME_COST) for log_setting in logs]
+    instances = [Instance(log_setting, args.weighted_time) for log_setting in logs]
     assert not any(instance.pickle_path.exists() for instance in instances)
     # instances = [
     #    instance for instance in instances if not instance.pickle_path.exists()
     # ]
+    print(
+        f"Running {len(instances)} comparisons with{'' if args.weighted_time else 'out'} weighted time cost"
+    )
 
     with WorkerPool(args.cores) as p:
         results = p.map(run_instance, instances, progress_bar=True)
