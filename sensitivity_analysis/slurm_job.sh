@@ -9,7 +9,7 @@
 #SBATCH --output=some_file.txt
 
 ### Program Code
-cd ~/jupyterlab/pcomp_experiments/sensitivity_analysis
+cd ~/pcomp-experiments/sensitivity_analysis
 source ../.venv/bin/activate
 
 python run_synthetic_road_traffic_logs.py --seed ${SLURM_ARRAY_TASK_ID} --cores ${SLURM_JOB_CPUS_PER_NODE} > outputs/${SLURM_ARRAY_TASK_ID}.txt
