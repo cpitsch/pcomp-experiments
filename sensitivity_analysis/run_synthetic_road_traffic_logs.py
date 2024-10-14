@@ -17,7 +17,11 @@ parser = ArgumentParser()
 
 
 parser.add_argument(
-    "-s", "--seed", type=int, help="The seed to run the experiments for.", required=True
+    "-s",
+    "--seed",
+    type=int,
+    help="The log generation seed to run the experiments for.",
+    required=True,
 )
 parser.add_argument(
     "-c",
