@@ -177,7 +177,9 @@ def run_instance(instance: Instance) -> dict[str, Any]:
 def main():
     start_time = default_timer()
     instances = get_all_instances()
-    assert not any(instance.pickle_path.exists() for instance in instances)
+    instances = [
+        instance for instance in instances if not instance.pickle_path.exists()
+    ]
 
     print(
         f"Running {len(instances)} comparisons with{'' if WEIGHTED_TIME_COST else 'out'} weighted time cost"
@@ -186,6 +188,10 @@ def main():
     with WorkerPool(min(len(instances), args.cores)) as p:
         results = p.map(run_instance, instances, progress_bar=True)
     df = pd.DataFrame(results)
+    SUMMARY_PATH = OUTPUT_BASE_PATH / "summary.csv"
+    if SUMMARY_PATH.exists():
+        old_df = pd.read_csv(SUMMARY_PATH)
+        df = pd.concat([old_df, df])
     df.to_csv(OUTPUT_BASE_PATH / "summary.csv", index=False)
 
     print(f"Elapsed Time: {default_timer() - start_time}")
