@@ -21,11 +21,11 @@ from pcomp.emd.comparators.permutation_test import (
 from pm4py import read_xes
 from pydantic import BaseModel
 
-LOGS_BASE_PATH = Path("testing_logs")
+LOGS_BASE_PATH = Path("testing_logs_noisy")
 
 
 YAML_PATH = Path("log_settings.yaml")
-OUTPUT_BASE_PATH = Path("control_flow_results")
+OUTPUT_BASE_PATH = Path("control_flow_results_noisy")
 
 SIGNIFICANCE_LEVEL = 0.05
 DIST_SIZE = 10_000
@@ -66,9 +66,11 @@ class LogInstance:
 
     @property
     def identifier(self) -> str:
-        # return f"{self.source}_{self.path.name.split('.')[0]}_{self.log_1_range[0]}-{self.log_1_range[1]}_{self.log_2_range[0]}-{self.log_2_range[1]}"
-        name_without_extensions = self.path.name.split(".")[0]
-        return f"{name_without_extensions}_{self.log_1_range[0]}-{self.log_1_range[1]}_{self.log_2_range[0]}-{self.log_2_range[1]}"
+        return f"{self.path.name.split('.')[0]}_{self.log_1_range[0]}-{self.log_1_range[1]}_{self.log_2_range[0]}-{self.log_2_range[1]}"
+
+    @property
+    def noise_level(self) -> int:
+        return int(self.path.parent.name)
 
 
 class LogSetting(BaseModel):
@@ -172,6 +174,7 @@ class Instance(ABC, Generic[T, R]):
             "log_source": self.log_instance.source,
             "log_path": self.log_instance.path.as_posix(),
             "log_name": self.log_instance.path.name.split(".")[0],
+            "noise_level": self.log_instance.noise_level,
             "has_diff": log_has_drift,
             "pval": pval,
             "logs_emd": logs_emd,
@@ -179,6 +182,7 @@ class Instance(ABC, Generic[T, R]):
             "correct": is_correct,
             "classification_class": get_classification_class(detection, log_has_drift),
             "duration": duration_seconds,
+            "pickle_path": self.pickle_path.as_posix(),
         }
 
     @abstractmethod
@@ -288,6 +292,11 @@ def run():
         instance for instance in all_instances if not instance.pickle_path.exists()
     ]
 
+    for instance in all_instances:
+        print(instance.pickle_path)
+    print(len(all_instances))
+
+    assert 1 == 2
     start_time = default_timer()
     with WorkerPool(args.cores) as p:
         results = p.map(run_instance, all_instances, progress_bar=True)
