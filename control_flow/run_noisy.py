@@ -292,11 +292,6 @@ def run():
         instance for instance in all_instances if not instance.pickle_path.exists()
     ]
 
-    for instance in all_instances:
-        print(instance.pickle_path)
-    print(len(all_instances))
-
-    assert 1 == 2
     start_time = default_timer()
     with WorkerPool(args.cores) as p:
         results = p.map(run_instance, all_instances, progress_bar=True)
