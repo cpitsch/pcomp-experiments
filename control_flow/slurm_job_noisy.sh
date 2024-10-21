@@ -8,7 +8,7 @@
 #SBATCH --output=control_flow_output.txt
 
 ### Program Code
-cd ~/jupyterlab/pcomp_experiments/control_flow
+cd ~/pcomp-experiments/control_flow
 source ../.venv/bin/activate
 
 python run_noisy.py --cores ${SLURM_JOB_CPUS_PER_NODE}
