@@ -2,8 +2,9 @@
 input = "../Road_Traffic_Fine_Management_Process.xes.gz"
 output = "road_traffic_synthetic_logs"
 compress_output = true
-seed = 1
 
+[pipeline]
+seed = "1..=10"
 [[pipeline.mutations]]
 type = "PartialOrderCreator"
 
