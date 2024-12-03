@@ -10,11 +10,12 @@ FIGURES_BASE_PATH = Path("figures")
 CSV_PATH = RESULTS_BASE_PATH / "summary.csv"
 
 
-def generate_fpr_plot():
+def generate_fpr_plot(fpr_column_name: str):
     df = pd.read_csv(CSV_PATH)
 
     SIG_LVL_COLUMN = r"Significance Level $\alpha$"
-    FPR_COLUMN = "False Positive Rate"
+    # FPR_COLUMN = "False Positive Rate"
+    FPR_COLUMN = fpr_column_name
 
     plot_df = pd.DataFrame(
         [
@@ -35,9 +36,15 @@ def generate_fpr_plot():
 
     ax.legend(ax.get_lines(), ["Observed", "Expected"])
 
-    fig.savefig(FIGURES_BASE_PATH / "fpr.pdf", bbox_inches="tight")
+    filename = (
+        "fpr.pdf"
+        if fpr_column_name == "False Positive Rate"
+        else f"fpr_{fpr_column_name.lower().replace(' ', '_')}.pdf"
+    )
+    fig.savefig(FIGURES_BASE_PATH / filename, bbox_inches="tight")
 
 
 if __name__ == "__main__":
     FIGURES_BASE_PATH.mkdir(exist_ok=True)
-    generate_fpr_plot()
+    generate_fpr_plot("False Positive Rate")
+    generate_fpr_plot("Type I Error Rate")
