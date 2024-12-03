@@ -10,6 +10,10 @@ control_flow/ceravolo_raw/*.csv
 # Jupyter Notebooks
 *.ipynb
 
+# PDFs and Tables
+*.tex
+*.pdf
+
 
 # Languages: Python (1)
 
