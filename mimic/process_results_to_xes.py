@@ -208,47 +208,22 @@ def main():
     transfusions_data["event_type"] = "blood_transfusion"
     endpoints_data["event_type"] = "endpoint"
 
-    log = pd.concat([transfusions_data, hemoglobin_data, endpoints_data]).sort_values(
-        by=[DEFAULT_TRACEID_KEY, DEFAULT_TIMESTAMP_KEY], ascending=True
+    log = (
+        pd.concat([transfusions_data, hemoglobin_data, endpoints_data])
+        .sort_values(by=[DEFAULT_TRACEID_KEY, DEFAULT_TIMESTAMP_KEY], ascending=True)
+        .reset_index()
     )
 
     log = add_time_since_last_measurement(log)
 
-    # Add new "time since last measurement" column
-    # This has the time since the last measurement, which follows the following rules:
-    # - 0 if the event itself is a measurement
-    # - 0 if there was no preceding measurement
-    # - The time since the last measurement, otherwise
-
-    # log["time_of_last_measurement"] = log[DEFAULT_TIMESTAMP_KEY].where(
-    #     log[DEFAULT_NAME_KEY] == "Hemoglobin"
-    # )
-    # log = log.sort_values([DEFAULT_TRACEID_KEY, DEFAULT_TIMESTAMP_KEY])
-    # log["time_of_last_measurement"] = log.groupby(DEFAULT_TRACEID_KEY, sort=False)[
-    #     "time_of_last_measurement"
-    # ].ffill()
-    # log["time_of_last_measurement"] = log["time_of_last_measurement"].fillna(
-    #     value=log[DEFAULT_TIMESTAMP_KEY]
-    # )
-    # log["time_since_last_measurement"] = (
-    #     log[DEFAULT_TIMESTAMP_KEY] - log["time_of_last_measurement"]
-    # ).dt.total_seconds()
-
-    # Do the same for the "time since last transfusion" column
-    # log["time_of_last_transfusion"] = log[DEFAULT_TIMESTAMP_KEY].where(
-    #     log["event_type"] == "blood_transfusion"
-    # )
-    # log = log.sort_values([DEFAULT_TRACEID_KEY, DEFAULT_TIMESTAMP_KEY])
-    # log["time_of_last_transfusion"] = log.groupby(DEFAULT_TRACEID_KEY, sort=False)[
-    #     "time_of_last_transfusion"
-    # ].ffill()
-    # log["time_of_last_transfusion"] = log["time_of_last_transfusion"].fillna(
-    #     value=log[DEFAULT_TIMESTAMP_KEY]
-    # )
-    # log["time_since_last_transfusion"] = (
-    #     log[DEFAULT_TIMESTAMP_KEY] - log["time_of_last_transfusion"]
-    # ).dt.total_seconds()
-    # log = log.drop(columns=["time_of_last_measurement", "time_of_last_transfusion"])
+    ## Make a "comparison_value" column that holds the data of interest for each kind of event
+    ### Just overwrite the existing comparison_value column for now
+    log.loc[log["event_type"] == "blood_transfusion", "comparison_value"] = log[
+        "time_since_last_measurement"
+    ]
+    log.loc[log["event_type"] == "hemoglobin_measurement", "comparison_value"] = log[
+        "time_since_last_measurement"
+    ]
 
     write_xes(log, LOG_OUTPUT_PATH.as_posix())
 
