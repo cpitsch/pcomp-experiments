@@ -98,8 +98,13 @@ def plot_time_distributions(
     )
     combined["Service Time [h]"] = combined["@pcomp:duration"].dt.total_seconds() / 3600
 
+    # plt.rcParams["axes.labelsize"] = 14  # Axis labels
     fig, ax = plt.subplots()
     sns.histplot(combined, x="Service Time [h]", hue="Log Type", element="step", ax=ax)
+    ax.tick_params(axis="x", labelsize=12)
+    ax.tick_params(axis="y", labelsize=12)
+    ax.get_xaxis().get_label().set_fontsize(14)
+    ax.get_yaxis().get_label().set_fontsize(14)
     return fig, ax
 
 
@@ -114,6 +119,7 @@ def generate_service_time_distribution_plots():
         (0.5, 1),
         (0.7, 1),
         (1, 1),
+        (0.4, 0.3),
     ]
 
     SEED = 1
@@ -133,7 +139,9 @@ def generate_service_time_distribution_plots():
 
 
 def get_summary_df(seed: int) -> pd.DataFrame:
-    return pd.read_csv(RESULTS_BASE_DIR / str(seed) / "summary.csv")
+    df = pd.read_csv(RESULTS_BASE_DIR / str(seed) / "summary.csv")
+    df["scaled_emd"] = df["logs_emd"] * 10
+    return df
 
 
 def get_summary_dfs():
@@ -173,6 +181,8 @@ def aggregate_summary_dfs(summaries: dict[int, pd.DataFrame]) -> pd.DataFrame:
     total_df["majority_vote"] = total_df["detection"].apply(
         lambda detections: Counter(detections).most_common(1)[0][0]
     )
+    total_df["mean_logs_emd"] = total_df["logs_emd"].apply(np.mean)
+    total_df["10_mean_logs_emd"] = 10 * total_df["mean_logs_emd"]
     # I am aware this isnt really percent since it goes from 0-1, but its late and I cant
     # think of another word for it
     total_df["percent_correct"] = total_df["correct"].apply(
@@ -229,7 +239,8 @@ def generate_heatmap(
 
 
 def generate_individual_seed_heatmap(seed: int, df: pd.DataFrame, value: str):
-    fig, _ = generate_heatmap(df, value)
+    auto_range = value in ["logs_emd", "scaled_emd"]
+    fig, _ = generate_heatmap(df, value, auto_color_range=auto_range)
     fig.savefig(FIGURES_BASE_DIR / "seeds" / f"{seed}_{value}.pdf", bbox_inches="tight")
     plt.close(fig)
 
@@ -248,11 +259,17 @@ def generate_aggregate_heatmaps():
 
     total_df = aggregate_summary_dfs(get_summary_dfs())
 
-    for column in ["mean_pval", "percent_correct", "pval_stdev"]:
+    for column in [
+        "mean_pval",
+        "percent_correct",
+        "pval_stdev",
+        "mean_logs_emd",
+        "10_mean_logs_emd",
+    ]:
         for create_legend in [True, False]:
             legend_str = "" if create_legend else "_no_legend"
             auto_range = False  # column == "pval_stdev"
-            auto_range = column == "pval_stdev"
+            auto_range = column in ["pval_stdev", "mean_logs_emd", "10_mean_logs_emd"]
             fig = generate_heatmap(
                 total_df,
                 column,
@@ -272,6 +289,9 @@ if __name__ == "__main__":
     generate_service_time_distribution_plots()
     print("Generating P-Value Heatmaps for each seed")
     generate_individual_seed_heatmaps("pval")
+    print("Generating EMD Heatmaps for each seed")
+    generate_individual_seed_heatmaps("logs_emd")
+    generate_individual_seed_heatmaps("scaled_emd")
     print("Generating Detection Heatmaps for each seed")
     generate_individual_seed_heatmaps("detection")
     print("Generating aggregate heatmaps")
