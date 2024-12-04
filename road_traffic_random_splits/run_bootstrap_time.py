@@ -8,13 +8,12 @@ from typing import Any, Literal
 import pandas as pd
 from mpire.pool import WorkerPool
 from pcomp.binning import KMeans_Binner
-from pcomp.emd.comparators.permutation_test import (
-    Timed_Levenshtein_PermutationComparator,
-)
+from pcomp.emd.comparators.bootstrap import Timed_Levenshtein_BootstrapComparator
 from pcomp.utils import import_log
 
 LOGS_BASE_DIR = Path("road_traffic_random_splits")
-OUTPUT_BASE_PATH = Path("random_split_results")
+
+OUTPUT_BASE_PATH = Path("results", "bootstrap_time")
 
 WEIGHTED_TIME_COST = True
 
@@ -80,25 +79,25 @@ class Instance:
 
     @property
     def technique_name(self) -> str:
-        return "permutation_test"
+        return "bootstrap_test"
 
     def get_logs(self) -> tuple[pd.DataFrame, pd.DataFrame]:
         return self.log.get_logs()
 
     def get_comparator(
         self, verbose: bool = True
-    ) -> Timed_Levenshtein_PermutationComparator:
-        return Timed_Levenshtein_PermutationComparator(
+    ) -> Timed_Levenshtein_BootstrapComparator:
+        return Timed_Levenshtein_BootstrapComparator(
             *self.get_logs(),
             weighted_time_cost=self.weighted_time_cost,
             binner_factory=KMeans_Binner,
             binner_args={"k": 3},
-            distribution_size=DIST_SIZE,
+            bootstrapping_dist_size=DIST_SIZE,
             seed=SEED,
             verbose=verbose,
         )
 
-    def load_pickle(self) -> Timed_Levenshtein_PermutationComparator:
+    def load_pickle(self) -> Timed_Levenshtein_BootstrapComparator:
         if not self.pickle_path.exists():
             raise ValueError(
                 "Attempt to load non-existent pickle file:", self.pickle_path.as_posix()
@@ -114,7 +113,7 @@ class Instance:
         is_correct = detection == log_has_drift
 
         return {
-            "technique": "Permutation Test",
+            "technique": "Bootstrap Test",
             "log_seed": self.log.seed,
             "log_path": self.log.path.as_posix(),
             "binner": "kmeans_3",
@@ -181,9 +180,7 @@ def main():
         instance for instance in instances if not instance.pickle_path.exists()
     ]
 
-    print(
-        f"Running {len(instances)} comparisons with{'' if WEIGHTED_TIME_COST else 'out'} weighted time cost"
-    )
+    print(f"Running {len(instances)} comparisons")
 
     with WorkerPool(min(len(instances), args.cores)) as p:
         results = p.map(run_instance, instances, progress_bar=True)

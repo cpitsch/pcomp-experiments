@@ -4,14 +4,12 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
 
-RESULTS_BASE_PATH = Path("random_split_results")
+RESULTS_BASE_PATH = Path("results")
 FIGURES_BASE_PATH = Path("figures")
 
-CSV_PATH = RESULTS_BASE_PATH / "summary.csv"
 
-
-def generate_fpr_plot(fpr_column_name: str):
-    df = pd.read_csv(CSV_PATH)
+def generate_fpr_plot(result_dir: Path, fpr_column_name: str):
+    df = pd.read_csv(result_dir / "summary.csv")
 
     SIG_LVL_COLUMN = r"Significance Level $\alpha$"
     # FPR_COLUMN = "False Positive Rate"
@@ -41,10 +39,18 @@ def generate_fpr_plot(fpr_column_name: str):
         if fpr_column_name == "False Positive Rate"
         else f"fpr_{fpr_column_name.lower().replace(' ', '_')}.pdf"
     )
-    fig.savefig(FIGURES_BASE_PATH / filename, bbox_inches="tight")
+
+    figure_path = FIGURES_BASE_PATH / result_dir.name / filename
+    figure_path.parent.mkdir(parents=True, exist_ok=True)
+
+    fig.savefig(figure_path, bbox_inches="tight")
 
 
 if __name__ == "__main__":
     FIGURES_BASE_PATH.mkdir(exist_ok=True)
-    generate_fpr_plot("False Positive Rate")
-    generate_fpr_plot("Type I Error Rate")
+
+    for result_dir in RESULTS_BASE_PATH.iterdir():
+        assert result_dir.is_dir()
+        print("Creating figures for", result_dir.name)
+        generate_fpr_plot(result_dir, "False Positive Rate")
+        generate_fpr_plot(result_dir, "Type I Error Rate")
