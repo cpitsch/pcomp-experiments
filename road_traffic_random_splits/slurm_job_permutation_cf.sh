@@ -5,10 +5,10 @@
 #SBATCH --time=10:00:00
 #SBATCH --cpus-per-task=32
 #SBATCH --partition=c23ms
-#SBATCH --output=random_splits_output.txt
+#SBATCH --output=random_splits_output_permutation_cf.txt
 
 ### Program Code
 cd ~/pcomp-experiments/road_traffic_random_splits
 source ../.venv/bin/activate
 
-python run.py --cores ${SLURM_JOB_CPUS_PER_NODE}
+python run_permutation_cf.py --cores ${SLURM_JOB_CPUS_PER_NODE}

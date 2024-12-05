@@ -1,11 +1,11 @@
 #!/usr/bin/zsh
 
 ### Job Parameters
-#SBATCH --job-name=pcomp_random_splits
+#SBATCH --job-name=pcomp_random_splits_permutation_time
 #SBATCH --time=10:00:00
 #SBATCH --cpus-per-task=16
 #SBATCH --partition=c23ms
-#SBATCH --output=random_splits_output.txt
+#SBATCH --output=random_splits_output_permutation_time.txt
 
 ### Program Code
 cd ~/pcomp-experiments/road_traffic_random_splits

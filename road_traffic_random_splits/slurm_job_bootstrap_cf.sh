@@ -1,9 +1,9 @@
 #!/usr/bin/zsh
 
 ### Job Parameters
-#SBATCH --job-name=pcomp_random_splits_bootstrap
+#SBATCH --job-name=pcomp_random_splits_bootstrap_cf
 #SBATCH --time=10:00:00
-#SBATCH --cpus-per-task=16
+#SBATCH --cpus-per-task=32
 #SBATCH --partition=c23ms
 #SBATCH --output=random_splits_bootstrap_output.txt
 
