@@ -307,6 +307,7 @@ def run():
 
     csv_path = OUTPUT_BASE_PATH / "summary.csv"
     if csv_path.exists():
+        print(f"{csv_path} already exists! Appending new data to old dataframe")
         old_df = pd.read_csv(csv_path)
         df = pd.concat([old_df, df])
     df.to_csv(OUTPUT_BASE_PATH / "summary.csv", index=False)
