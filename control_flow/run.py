@@ -305,6 +305,7 @@ def run():
         results = p.map(run_instance, all_instances, progress_bar=True)
     df = pd.DataFrame(results)
 
+    OUTPUT_BASE_PATH.mkdir(parents=True, exist_ok=True)
     csv_path = OUTPUT_BASE_PATH / "summary.csv"
     if csv_path.exists():
         print(f"{csv_path} already exists! Appending new data to old dataframe")
