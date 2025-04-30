@@ -1,5 +1,5 @@
 import pickle
-from abc import ABC, abstractmethod, abstractproperty
+from abc import ABC, abstractmethod
 from argparse import ArgumentParser
 from dataclasses import dataclass
 from math import ceil, floor
@@ -66,9 +66,14 @@ class LogInstance:
 
     @property
     def identifier(self) -> str:
-        # return f"{self.source}_{self.path.name.split('.')[0]}_{self.log_1_range[0]}-{self.log_1_range[1]}_{self.log_2_range[0]}-{self.log_2_range[1]}"
-        name_without_extensions = self.path.name.split(".")[0]
-        return f"{name_without_extensions}_{self.log_1_range[0]}-{self.log_1_range[1]}_{self.log_2_range[0]}-{self.log_2_range[1]}"
+        return f"{self.path.name.split('.')[0]}_{self.log_1_range[0]}-{self.log_1_range[1]}_{self.log_2_range[0]}-{self.log_2_range[1]}"
+
+    @property
+    def noise_level(self) -> int:
+        if self.path.parent.name == "bose":
+            return 0
+        else:
+            return int(self.path.parent.name)
 
 
 class LogSetting(BaseModel):
@@ -117,8 +122,8 @@ def get_all_log_instances() -> list[LogInstance]:
     ]
 
 
-T = TypeVar("T")
-R = TypeVar("R")
+T = TypeVar("T")  # Comparator Type
+R = TypeVar("R")  # Result Type
 
 
 @dataclass
@@ -127,8 +132,10 @@ class Instance(ABC, Generic[T, R]):
 
     @property
     def path(self) -> Path:
+        """Base path for outputs saved by this instance"""
         return (
             OUTPUT_BASE_PATH
+            / self.technique_name  # WARN: ADDED THIS SO BOOTSTRAP AND PERMUTATION TEST WOULDNT OVERWRITE EACHOTHER
             / self.log_instance.path.relative_to(LOGS_BASE_PATH).parent
             / self.log_instance.identifier
         )
@@ -139,9 +146,11 @@ class Instance(ABC, Generic[T, R]):
 
     @property
     def pickle_path(self) -> Path:
+        """Save path for the result pickle"""
         return self.path / "result.pkl"
 
-    @abstractproperty
+    @property
+    @abstractmethod
     def technique_name(self) -> str: ...
 
     def get_logs(self) -> tuple[pd.DataFrame, pd.DataFrame]:
@@ -172,6 +181,7 @@ class Instance(ABC, Generic[T, R]):
             "log_source": self.log_instance.source,
             "log_path": self.log_instance.path.as_posix(),
             "log_name": self.log_instance.path.name.split(".")[0],
+            "noise_level": self.log_instance.noise_level,
             "has_diff": log_has_drift,
             "pval": pval,
             "logs_emd": logs_emd,
@@ -179,8 +189,10 @@ class Instance(ABC, Generic[T, R]):
             "correct": is_correct,
             "classification_class": get_classification_class(detection, log_has_drift),
             "duration": duration_seconds,
+            "pickle_path": self.pickle_path.as_posix(),
         }
 
+    # TODO: Isnt this identical for both techniques
     @abstractmethod
     def run_and_save_results(self, verbose: bool = True) -> dict[str, Any]: ...
 

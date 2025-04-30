@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "pcompsyntheticlogruns"
+name = "pcomp-experiments"
 version = "0.1.0"
 description = ""
 authors = ["Cameron Pitsch <cameron.pitsch@rwth-aachen.de>"]
