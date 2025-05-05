@@ -283,10 +283,12 @@ if __name__ == "__main__":
         LATEX_FILES_BASE_DIR.mkdir()
 
     total_df = get_results_df()
-    num_combinations = total_df[["log_source", "noise_level"]].drop_duplicates().shape[0]
-    num_combinations += total_df["noise_level"].nunique() # Add all None, x pairs
+    num_combinations = (
+        total_df[["log_source", "noise_level"]].drop_duplicates().shape[0]
+    )
+    num_combinations += total_df["noise_level"].nunique()  # Add all (None, _) pairs
     progress = tqdm(
-        total= num_combinations * 4,
+        total=num_combinations * 4,
         desc="Creating latex tables",
     )
 
@@ -300,9 +302,7 @@ if __name__ == "__main__":
             progress.update()
             create_general_metrics_table(LATEX_FILES_BASE_DIR, noise_level, source)
             progress.update()
-            bootstrap_df, permutation_df = get_splitted_results_df(
-                noise_level, source
-            )
+            bootstrap_df, permutation_df = get_splitted_results_df(noise_level, source)
             create_per_change_pattern_table(
                 LATEX_FILES_BASE_DIR,
                 bootstrap_df,
