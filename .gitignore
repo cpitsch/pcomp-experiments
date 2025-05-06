@@ -15,6 +15,9 @@ control_flow/ceravolo_raw/*.csv
 *.pdf
 
 
+# Other
+.python-version
+
 # Languages: Python (1)
 
 
