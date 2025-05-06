@@ -11,7 +11,7 @@ from pcomp.binning import KMeans_Binner
 from pcomp.emd.comparators.bootstrap import Timed_Levenshtein_BootstrapComparator
 from pcomp.utils import import_log
 
-LOGS_BASE_DIR = Path("road_traffic_random_splits")
+LOGS_BASE_DIR = Path("random_split_logs")
 OUTPUT_BASE_PATH = Path("results", "bootstrap_time")
 
 WEIGHTED_TIME_COST = True

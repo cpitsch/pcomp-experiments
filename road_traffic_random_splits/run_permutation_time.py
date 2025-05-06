@@ -13,7 +13,7 @@ from pcomp.emd.comparators.permutation_test import (
 )
 from pcomp.utils import import_log
 
-LOGS_BASE_DIR = Path("road_traffic_random_splits")
+LOGS_BASE_DIR = Path("random_split_logs")
 OUTPUT_BASE_PATH = Path("results", "permutation_time")
 
 WEIGHTED_TIME_COST = True
