@@ -348,8 +348,12 @@ class DisparityExplainer:
             ]
             .groupby("case:concept:name")["time_since_last_measurement"]
             .mean(),
-            ks_2samp(m_times_since_last_measurement_1, m_times_since_last_measurement_2).pvalue,  # type: ignore
-            ks_2samp(t_times_since_last_measurement_1, t_times_since_last_measurement_2).pvalue,  # type: ignore
+            ks_2samp(
+                m_times_since_last_measurement_1, m_times_since_last_measurement_2
+            ).pvalue,  # type: ignore
+            ks_2samp(
+                t_times_since_last_measurement_1, t_times_since_last_measurement_2
+            ).pvalue,  # type: ignore
             # reaction_times_1,
             # reaction_times_2,
             # ks_2samp(reaction_times_1, reaction_times_2).pvalue,  # type: ignore
@@ -408,8 +412,8 @@ class DisparityExplainer:
         print(f"p={self.num_hemoglobin_measurements_pval:.3f}")
 
         print("Mortality Rate")
-        print(f"\t{self.log_1_name}: {self.mortality_rate_1*100:.2f}%")
-        print(f"\t{self.log_2_name}: {self.mortality_rate_2*100:.2f}%")
+        print(f"\t{self.log_1_name}: {self.mortality_rate_1 * 100:.2f}%")
+        print(f"\t{self.log_2_name}: {self.mortality_rate_2 * 100:.2f}%")
 
         print("Mean Age")
         print(f"\t{self.log_1_name}: {self.ages_1.mean():.2f}")
@@ -559,8 +563,8 @@ class DisparityExplainer:
                 # ),
                 {
                     "Metric": "Mortality Rate",
-                    self.log_1_name: f"{self.mortality_rate_1*100:.2f}%",
-                    self.log_2_name: f"{self.mortality_rate_2*100:.2f}%",
+                    self.log_1_name: f"{self.mortality_rate_1 * 100:.2f}%",
+                    self.log_2_name: f"{self.mortality_rate_2 * 100:.2f}%",
                     "%Δ": f"{_get_percent_change(self.mortality_rate_1, self.mortality_rate_2):.2f}%",
                     "P-Value": self.mortality_pvalue,
                     f"Significant (Bonferroni {bonferroni_correction_divisor})": self.mortality_pvalue
