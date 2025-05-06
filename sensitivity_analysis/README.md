@@ -1,1 +1,2 @@
-
+- This directory contains the code for the sensitivity analysis
+- Only the weighted time cost experiment is relevant. The other experiment was done as a preliminary experiment to gauge the effect of scaling the time cost.

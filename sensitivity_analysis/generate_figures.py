@@ -10,7 +10,7 @@ import seaborn as sns
 from matplotlib.axes import Axes
 from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.figure import Figure
-from pm4py import read_xes
+from pm4py import read_xes  # type: ignore
 
 FIGURES_BASE_DIR = Path("figures")
 
@@ -40,8 +40,16 @@ EQUALITY_CRTERION = [
 FLOAT_FORMATTER = "{:.3g}".format
 
 
-def _num_to_str_truncate(x: float | int):
+def _num_to_str_truncate(x: float | int) -> str:
+    """Convert an int/float to string. Follow the rules rust does
+    since rust created the directory names. I.e., 1.0 becomes "1", not "1.0"T.
 
+    Args:
+        x (float | int): The number to convert.
+
+    Returns:
+        str: The converted as a string, first converted to int if it is a whole number.
+    """
     if isinstance(x, int):
         return str(x)
     elif x.is_integer():
@@ -51,10 +59,29 @@ def _num_to_str_truncate(x: float | int):
 
 
 def import_log(log_path: Path) -> pd.DataFrame:
+    """Import an event log using rustxes.
+
+    Args:
+        log_path (Path): The path to the .xes or .xes.gz file.
+
+    Returns:
+        pd.DataFrame: The imported event log
+    """
     return cast(pd.DataFrame, read_xes(log_path.as_posix(), variant="rustxes"))
 
 
 def get_log_paths(seed: int, probability: float, severity: float) -> tuple[Path, Path]:
+    """Get the paths to the two compared event logs for a certain parameter setting
+
+    Args:
+        seed (int): The seed.
+        probability (float): The probability of injecting a mutation.
+        severity (float): The severity of the (potentially) injected mutation.
+
+    Returns:
+        tuple[Path, Path]: The paths to the event logs. The first path corresponds to
+            the event log half with no mutations.
+    """
     prob = _num_to_str_truncate(probability)
     sev = _num_to_str_truncate(severity)
 
@@ -75,6 +102,17 @@ def get_log_paths(seed: int, probability: float, severity: float) -> tuple[Path,
 def get_logs(
     seed: int, probability: float, severity: float
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Import the event logs for a given parameter setting.
+
+    Args:
+        seed (int): The seed used for mutations.
+        probability (float): The probability of injecting a mutation.
+        severity (float): The severity of the (potentially) injected mutation.
+
+    Returns:
+        tuple[pd.DataFrame, pd.DataFrame]: The event logs. The first event log is the
+            half with no injected mutations.
+    """
     log_path_1, log_path_2 = get_log_paths(seed, probability, severity)
     log_1 = import_log(log_path_1)
     log_2 = import_log(log_path_2)
@@ -84,6 +122,20 @@ def get_logs(
 def plot_time_distributions(
     seed: int, probability: float, severity: float, activity: str | None = None
 ) -> tuple[Figure, Axes]:
+    """Plot the distributions of total service time per case for the two event log halves
+    for a given parameter setting. The original event log distribution is shown in blue,
+    the mutated half in orange.
+
+    Args:
+        seed (int): The seed used for mutations.
+        probability (float): The probability of injecting a mutation.
+        severity (float): The severity of the (potentially) injected mutation.
+        activity (str | None, optional): The activity to filter for. Defaults to None
+            (all activities considered).
+
+    Returns:
+        tuple[Figure, Axes]: The figure.
+    """
     log_1, log_2 = get_logs(seed, probability, severity)
 
     log_1["Log Type"] = "Original"
@@ -109,6 +161,9 @@ def plot_time_distributions(
 
 
 def generate_service_time_distribution_plots():
+    """Create and save the service time distribution plots for a few hard-coded probability/severity
+    pairs (and seed=1).
+    """
     BASE_DIR = FIGURES_BASE_DIR / "service_time_distributions"
     BASE_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -139,12 +194,28 @@ def generate_service_time_distribution_plots():
 
 
 def get_summary_df(seed: int) -> pd.DataFrame:
+    """Load the experiment summary dataframe for a given seed.
+    Additionally, the column "scaled_emd" is created, which multiplies the measured EMD
+    between the event logs by 10.
+
+    Args:
+        seed (int): The seed (used for log mutationTs) to consider.
+
+    Returns:
+        pd.DataFrame: The dataframe.
+    """
     df = pd.read_csv(RESULTS_BASE_DIR / str(seed) / "summary.csv")
     df["scaled_emd"] = df["logs_emd"] * 10
     return df
 
 
-def get_summary_dfs():
+def get_summary_dfs() -> dict[int, pd.DataFrame]:
+    """Load the experiment summary dataframe for each seed.
+
+    Returns:
+        dict[int, pd.DataFrame]: A dictionary mapping seeds to the respective results
+            dataframe.
+    """
     return {
         int(seed.name): get_summary_df(int(seed.name))
         for seed in RESULTS_BASE_DIR.iterdir()
@@ -152,6 +223,14 @@ def get_summary_dfs():
 
 
 def entropy(items: list[bool]) -> float:
+    """Compute the Shannon-Entropy of a list of booleans.
+
+    Args:
+        items (list[bool]): The booleans.
+
+    Returns:
+        float: The shannon-entropy
+    """
     population = Counter(items)
     pop_len = len(items)
     return -sum(
@@ -160,6 +239,28 @@ def entropy(items: list[bool]) -> float:
 
 
 def aggregate_summary_dfs(summaries: dict[int, pd.DataFrame]) -> pd.DataFrame:
+    """Combine all summary dataframes into one by concatenation. Then, results for
+    identical parameters (but different seeds) are collected and aggregated into lists
+    of values.
+    Additionally, some auxilliary, aggregate, columns are created:
+
+        - `mean_pval`: The mean pvalue over all seeds
+        - `pval_stdev`: The pvalue standard deviation over all seeds
+        - `mean_is_detection`: Is `mean_pval` less than the significance level (0.05)?
+        - `majority_vote`: Majority vote decision over all seeds: is there a difference.
+        - `mean_logs_emd`: The mean emd measured between the event logs, over all seeds
+        - `10_mean_logs_emd`: `mean_logs_emd` multiplied by 10
+        - `percent_correct`: Ratio of correct classifications over all seeds
+        - `pval_range`: The range of (min_pval, max_pval) over all seeds
+        - `pval_range_size`: If `pval_range` is (min_pval, max_pval), then this is max_pval - min_pval
+        - `detection_entropy`: The shannon entropy of the classifications (detection: true, false)
+
+    Args:
+        summaries (dict[int, pd.DataFrame]): The summaries dictionary. See `get_summary_dfs`.
+
+    Returns:
+        pd.DataFrame: The combined dataframe.
+    """
     df = pd.concat(summaries.values())
     total_df = (
         df.groupby(by=EQUALITY_CRTERION)
@@ -206,6 +307,21 @@ def generate_heatmap(
     legend: bool = True,
     auto_color_range: bool = False,
 ) -> tuple[Figure, Axes]:
+    """Create a heatmap from the summary dataframe, using mutation probability and severity
+    as axes.
+
+    Args:
+        df (pd.DataFrame): The summary dataframe.
+        value (str): The value for which to create the heatmap.
+        reverse_colormap (bool, optional): Reverse the colormap. This is useful, e.g., when
+            using red/green but low is "good". Defaults to False.
+        legend (bool, optional): Draw the legend? Defaults to True.
+        auto_color_range (bool, optional): Automatically discover the size of the range to
+            use for the colormap. Otherwise, use [0,1]. Defaults to False.
+
+    Returns:
+        tuple[Figure, Axes]: The heatmap.
+    """
     fig, ax = plt.subplots(figsize=(10, 7.5))
 
     probability_column = "Mutation Probability"
@@ -220,9 +336,10 @@ def generate_heatmap(
     if reverse_colormap:
         colors = list(reversed(colors))
 
-    v_min_max = {"vmin": 0, "vmax": 1}
+    v_min_max: dict[str, int | None] = {"vmin": 0, "vmax": 1}
     if auto_color_range:
         v_min_max = {"vmin": None, "vmax": None}
+
     sns.heatmap(
         plot_df,
         annot=True,
@@ -239,6 +356,17 @@ def generate_heatmap(
 
 
 def generate_individual_seed_heatmap(seed: int, df: pd.DataFrame, value: str):
+    """Create and save a heatmap for a given seed and value using the summary dataframe.
+
+    If the value column is "logs_emd" or "scaled_emd", autoscaling is turned on since the
+    range is unknown
+
+    Args:
+        seed (int): The seed the summary dataframe corresponds to. Only used to create
+            the filename
+        df (pd.DataFrame): The summary dataframe.
+        value (str): The column name to create the dataframe for.
+    """
     auto_range = value in ["logs_emd", "scaled_emd"]
     fig, _ = generate_heatmap(df, value, auto_color_range=auto_range)
     fig.savefig(FIGURES_BASE_DIR / "seeds" / f"{seed}_{value}.pdf", bbox_inches="tight")
@@ -246,6 +374,11 @@ def generate_individual_seed_heatmap(seed: int, df: pd.DataFrame, value: str):
 
 
 def generate_individual_seed_heatmaps(value: str):
+    """For a column name, create the heatmap for each seed.
+
+    Args:
+        value (str): The column name.
+    """
     (FIGURES_BASE_DIR / "seeds").mkdir(parents=True, exist_ok=True)
 
     summaries = get_summary_dfs()
@@ -254,6 +387,10 @@ def generate_individual_seed_heatmaps(value: str):
 
 
 def generate_aggregate_heatmaps():
+    """Create and save heatmaps for aggregate values from the aggregated summary df.
+    Heatmaps created for 'mean_pval', 'percent_correct', 'pval_stdev', 'mean_logs_emd',
+    '10_mean_logs_emd'.
+    """
     BASE_DIR = FIGURES_BASE_DIR / "aggregate"
     BASE_DIR.mkdir(parents=True, exist_ok=True)
 

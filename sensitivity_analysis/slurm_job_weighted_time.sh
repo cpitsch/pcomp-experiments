@@ -2,11 +2,11 @@
 
 ### Job Parameters
 #SBATCH --array=1-5
-#SBATCH --job-name=pcomp_rtraffic_wt
+#SBATCH --job-name=pcomp_sensitivity_wt
 #SBATCH --time=09:00:00
 #SBATCH --cpus-per-task=16
 #SBATCH --partition=c23ms
-#SBATCH --output=some_file_weighted_time.txt
+#SBATCH --output=pcomp_sensitivity_wt.txt
 
 ### Program Code
 cd ~/pcomp-experiments/sensitivity_analysis
