@@ -9,10 +9,16 @@ FIGURES_BASE_PATH = Path("figures")
 
 
 def generate_fpr_plot(result_dir: Path, fpr_column_name: str):
+    """Create and save a plot of the False Positive Rate (FPR) (Or: Type-I Error Rate) as a function
+    of the significance level, $\alpha$
+
+    Args:
+        result_dir (Path): The path to the results directory.
+        fpr_column_name (str): The name to use for the False Positive Rate in the figure.
+    """
     df = pd.read_csv(result_dir / "summary.csv")
 
     SIG_LVL_COLUMN = r"Significance Level $\alpha$"
-    # FPR_COLUMN = "False Positive Rate"
     FPR_COLUMN = fpr_column_name
 
     plot_df = pd.DataFrame(
@@ -52,5 +58,6 @@ if __name__ == "__main__":
     for result_dir in RESULTS_BASE_PATH.iterdir():
         assert result_dir.is_dir()
         print("Creating figures for", result_dir.name)
+        # Create the figure once with the label False Positive Rate, and once with Type I Error Rate
         generate_fpr_plot(result_dir, "False Positive Rate")
         generate_fpr_plot(result_dir, "Type I Error Rate")

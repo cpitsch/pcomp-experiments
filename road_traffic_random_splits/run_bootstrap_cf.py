@@ -10,10 +10,7 @@ from mpire.pool import WorkerPool
 from pcomp.emd.comparators.bootstrap import ControlFlowBootstrapComparator
 from pcomp.utils import import_log
 
-# from pcomp.binning import KMeans_Binner
-
 LOGS_BASE_DIR = Path("road_traffic_random_splits")
-
 OUTPUT_BASE_PATH = Path("results", "bootstrap_cf")
 
 WEIGHTED_TIME_COST = True
