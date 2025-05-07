@@ -142,7 +142,7 @@ def get_classification_class(
 
     first_part = "T" if is_correct else "F"
     second_part = "P" if is_positive else "N"
-    return first_part + second_part
+    return first_part + second_part  # type: ignore
 
 
 def get_all_log_base_paths() -> list[Path]:
@@ -175,7 +175,7 @@ def main():
     OUTPUT_BASE_PATH.mkdir(parents=True, exist_ok=True)
     print(f"Running {len(instances)} comparisons")
 
-    with WorkerPool(min(len(instances), args.cores)) as p:
+    with WorkerPool(min(len(instances), args.cores), start_method="spawn") as p:
         results = p.map(run_instance, instances, progress_bar=True)
     df = pd.DataFrame(results)
     SUMMARY_PATH = OUTPUT_BASE_PATH / "summary.csv"

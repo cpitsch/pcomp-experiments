@@ -181,7 +181,7 @@ def main():
 
     print(f"Running {len(instances)} comparisons")
 
-    with WorkerPool(min(len(instances), args.cores)) as p:
+    with WorkerPool(min(len(instances), args.cores), start_method="spawn") as p:
         results = p.map(run_instance, instances, progress_bar=True)
     df = pd.DataFrame(results)
     SUMMARY_PATH = OUTPUT_BASE_PATH / "summary.csv"
