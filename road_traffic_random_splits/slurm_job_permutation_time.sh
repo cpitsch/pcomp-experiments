@@ -5,7 +5,7 @@
 #SBATCH --time=10:00:00
 #SBATCH --cpus-per-task=32
 #SBATCH --partition=c23mm
-#SBATCH --output=random_splits_output_permutation_time.txt
+#SBATCH --output=outputs/random_splits_output_permutation_time.txt
 
 ### Program Code
 cd ~/pcomp-experiments/road_traffic_random_splits
