@@ -4,8 +4,8 @@
 #SBATCH --array=1-5
 #SBATCH --job-name=pcomp_sensitivity_wt
 #SBATCH --time=09:00:00
-#SBATCH --cpus-per-task=16
-#SBATCH --partition=c23ms
+#SBATCH --cpus-per-task=32
+#SBATCH --partition=c23mm
 #SBATCH --output=pcomp_sensitivity_wt.txt
 
 ### Program Code

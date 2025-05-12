@@ -202,7 +202,7 @@ def get_classification_class(
 
     first_part = "T" if is_correct else "F"
     second_part = "P" if is_positive else "N"
-    return first_part + second_part
+    return first_part + second_part  # type: ignore
 
 
 def run_instance(instance: Instance) -> dict[str, Any]:
