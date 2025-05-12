@@ -15,7 +15,7 @@ from pm4py import read_xes  # type: ignore
 FIGURES_BASE_DIR = Path("figures")
 
 
-RESULTS_BASE_DIR = Path("road_traffic_synthetic_results")
+RESULTS_BASE_DIR = Path("results")
 ORDER_CRITERION = [
     "technique",
     "log_path",

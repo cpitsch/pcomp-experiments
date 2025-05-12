@@ -14,7 +14,7 @@ from matplotlib.axes import Axes
 from pcomp.emd.comparators.permutation_test import PermutationTestComparisonResult
 from pm4py import read_xes
 
-RESULTS_PATH = Path("road_traffic_synthetic_results")
+RESULTS_PATH = Path("results")
 
 
 WEIGHTED_TIME_RESULTS_PATH = Path("road_traffic_synthetic_results_WEIGHTED_TIME")
