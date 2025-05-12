@@ -34,7 +34,7 @@ parser.add_argument("--weighted-time", action="store_true")
 args = parser.parse_args()
 
 
-LOGS_BASE_PATH = Path("road_traffic_synthetic", str(args.seed))
+LOGS_BASE_PATH = Path("road_traffic_synthetic_logs", str(args.seed))
 
 if not LOGS_BASE_PATH.exists():
     raise ValueError(
