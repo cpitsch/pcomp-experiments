@@ -52,6 +52,66 @@ def generate_fpr_plot(result_dir: Path, fpr_column_name: str):
     fig.savefig(figure_path, bbox_inches="tight")
 
 
+def generate_combined_fpr_plot(
+    permutation_test_dir: Path,
+    bootstrap_test_dir: Path,
+    fpr_column_name: str,
+    filename: str,
+):
+    """Create and save a plot of the False Positive Rate (FPR) (Or: Type-I Error Rate) as a function
+    of the significance level, $\alpha$ for both techniques.
+
+    Args:
+        permutation_test_dir (Path): The path to the results directory of the permutation test approach.
+        bootstrap_test_dir (Path): The path to the results directory of the bootstrap test approach.
+        fpr_column_name (str): The name to use for the False Positive Rate in the figure.
+        filename (str): The filename to which to save the figure
+    """
+    permutation_df = pd.read_csv(permutation_test_dir / "summary.csv")
+    bootstrap_df = pd.read_csv(bootstrap_test_dir / "summary.csv")
+    permutation_df["Technique"] = "Permutation Test"
+    bootstrap_df["Technique"] = "Bootstrap Test"
+    df = pd.concat([permutation_df, bootstrap_df])
+
+    SIG_LVL_COLUMN = r"Significance Level $\alpha$"
+    FPR_COLUMN = fpr_column_name
+
+    plot_df = pd.DataFrame(
+        [
+            {
+                SIG_LVL_COLUMN: alpha,
+                FPR_COLUMN: technique_df[technique_df["pval"] < alpha].shape[0]
+                / technique_df.shape[0],
+                "Technique": technique,
+            }
+            for technique, technique_df in df.groupby(by="Technique")
+            for alpha in set(technique_df["pval"].unique()).union([0.0, 1.0])
+        ]
+        # Make permutation test be first for consistent colors
+    ).sort_values(by="Technique", ascending=False)
+
+    fig, ax = plt.subplots()
+    sns.lineplot(data=plot_df, x=SIG_LVL_COLUMN, y=FPR_COLUMN, ax=ax, hue="Technique")
+    sns.move_legend(ax, "lower right")
+    ax.plot([0, 1], [0, 1], color="gray", linestyle="--")
+
+    ax.set_xlim(0, 1)
+    ax.set_ylim(0, 1)
+
+    ax.get_xaxis().get_label().set_fontsize(12)
+    ax.get_yaxis().get_label().set_fontsize(12)
+
+    plt.setp(ax.get_legend().get_texts(), fontsize=12)
+    plt.setp(ax.get_legend().get_title(), fontsize=12)
+
+    # ax.legend(ax.get_lines(), ["Observed", "Expected"])
+
+    figure_path = FIGURES_BASE_PATH / filename
+    figure_path.parent.mkdir(parents=True, exist_ok=True)
+
+    fig.savefig(figure_path, bbox_inches="tight")
+
+
 if __name__ == "__main__":
     FIGURES_BASE_PATH.mkdir(exist_ok=True)
 
@@ -61,3 +121,16 @@ if __name__ == "__main__":
         # Create the figure once with the label False Positive Rate, and once with Type I Error Rate
         generate_fpr_plot(result_dir, "False Positive Rate")
         generate_fpr_plot(result_dir, "Type I Error Rate")
+
+    generate_combined_fpr_plot(
+        RESULTS_BASE_PATH / "permutation_cf",
+        RESULTS_BASE_PATH / "bootstrap_cf",
+        "Type I Error Rate",
+        "fpr_t1er_cf_combined.pdf",
+    )
+    generate_combined_fpr_plot(
+        RESULTS_BASE_PATH / "permutation_time",
+        RESULTS_BASE_PATH / "bootstrap_time",
+        "Type I Error Rate",
+        "fpr_t1er_time_combined.pdf",
+    )
