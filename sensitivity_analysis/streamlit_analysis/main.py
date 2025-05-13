@@ -235,7 +235,6 @@ def plot_log_service_time_distributions(
     severity: float,
     mode: Literal["seaborn", "plotly"],
 ) -> go.Figure | Axes:
-
     sev = _float_to_str_truncate(severity)
     prob = _float_to_str_truncate(probability)
 

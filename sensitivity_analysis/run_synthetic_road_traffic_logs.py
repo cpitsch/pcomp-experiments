@@ -9,6 +9,7 @@ import pandas as pd
 from mpire.pool import WorkerPool
 from pcomp.binning import KMeans_Binner
 from pcomp.emd.comparators.permutation_test import (
+    PermutationTestComparisonResult,
     Timed_Levenshtein_PermutationComparator,
 )
 from pcomp.utils import import_log
@@ -150,7 +151,7 @@ class Instance:
             verbose=verbose,
         )
 
-    def load_pickle(self) -> Timed_Levenshtein_PermutationComparator:
+    def load_pickle(self) -> PermutationTestComparisonResult:
         if not self.pickle_path.exists():
             raise ValueError(
                 "Attempt to load non-existent pickle file:", self.pickle_path.as_posix()
@@ -215,10 +216,11 @@ def main():
     start_time = default_timer()
     logs = get_change_log_settings(LOGS_BASE_PATH)
     instances = [Instance(log_setting, args.weighted_time) for log_setting in logs]
-    assert not any(instance.pickle_path.exists() for instance in instances)
-    # instances = [
-    #    instance for instance in instances if not instance.pickle_path.exists()
-    # ]
+
+    # Finish partially run experiment
+    instances = [
+        instance for instance in instances if not instance.pickle_path.exists()
+    ]
     print(
         f"Running {len(instances)} comparisons with{'' if args.weighted_time else 'out'} weighted time cost"
     )
