@@ -1,9 +1,9 @@
 #!/usr/bin/zsh
 
 ### Job Parameters
-#SBATCH --job-name=pcomp_control_flow_runs
+#SBATCH --job-name=pcomp_control_flow_all
 #SBATCH --time=10:00:00
-#SBATCH --cpus-per-task=16
+#SBATCH --cpus-per-task=32
 #SBATCH --partition=c23ms
 #SBATCH --output=control_flow_output.txt
 

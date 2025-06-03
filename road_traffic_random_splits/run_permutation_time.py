@@ -13,7 +13,7 @@ from pcomp.emd.comparators.permutation_test import (
 )
 from pcomp.utils import import_log
 
-LOGS_BASE_DIR = Path("road_traffic_random_splits")
+LOGS_BASE_DIR = Path("random_split_logs")
 OUTPUT_BASE_PATH = Path("results", "permutation_time")
 
 WEIGHTED_TIME_COST = True
@@ -152,7 +152,7 @@ def get_classification_class(
 
     first_part = "T" if is_correct else "F"
     second_part = "P" if is_positive else "N"
-    return first_part + second_part
+    return first_part + second_part  # type: ignore
 
 
 def get_all_log_base_paths() -> list[Path]:
@@ -183,7 +183,7 @@ def main():
 
     print(f"Running {len(instances)} comparisons")
 
-    with WorkerPool(min(len(instances), args.cores)) as p:
+    with WorkerPool(min(len(instances), args.cores), start_method="spawn") as p:
         results = p.map(run_instance, instances, progress_bar=True)
     df = pd.DataFrame(results)
     SUMMARY_PATH = OUTPUT_BASE_PATH / "summary.csv"

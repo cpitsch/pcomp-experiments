@@ -1,9 +1,9 @@
 """
-The bose log reuses case-ids for each sub-log region. As such, since the new pm4py 
+The bose log reuses case-ids for each sub-log region. As such, since the new pm4py
 version uses dataframes, these cases, when grouping the dataframe by case id, are merged,
-which is undersired.
+which is undesired.
 
-This script splits the event log into these sublogs based on time, then reassigns case ids
+This script splits the event log into these sublogs based on their timestamps, then reassigns case ids
 in order to guarantee their uniqueness.
 """
 
@@ -26,7 +26,7 @@ log[TIMESTAMP_COLUMN] = pd.to_datetime(log[TIMESTAMP_COLUMN])
 # Fix the log
 """
 Observation from Disco:
-The log has 5 bunches of activity, spread over time. These bunches (very likely) correspond to the
+The log has 5 distinct bunches of activity, spread over time. These bunches (very likely) correspond to the
 4 drifts in the process.
 
 "Time-Split-Points" taken from the Disco "Events Over Time" view:
@@ -37,6 +37,14 @@ The log has 5 bunches of activity, spread over time. These bunches (very likely)
 - 1979-09-09 00:00:00
 - <today>
 """
+
+# In retrospect, it might have been smarter to just downgrade to an old pm4py version that
+# still uses the event log objects and perform the conversion there. Instead of hacking
+# the cases apart
+#
+# Or: Use the rust `process_mining` crate instead.
+#
+# Though, this is easier to reproduce.
 
 
 zero_day = datetime.fromtimestamp(0)

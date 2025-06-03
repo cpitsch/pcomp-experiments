@@ -1,6 +1,6 @@
 # Download the event log from https://data.4tu.nl/articles/dataset/Road_Traffic_Fine_Management_Process/12683249
 input = "../Road_Traffic_Fine_Management_Process.xes.gz"
-output = "road_traffic_random_splits"
+output = "random_split_logs"
 compress_output = true
 
 [[pipeline.mutations]]

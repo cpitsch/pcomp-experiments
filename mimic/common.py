@@ -348,8 +348,12 @@ class DisparityExplainer:
             ]
             .groupby("case:concept:name")["time_since_last_measurement"]
             .mean(),
-            ks_2samp(m_times_since_last_measurement_1, m_times_since_last_measurement_2).pvalue,  # type: ignore
-            ks_2samp(t_times_since_last_measurement_1, t_times_since_last_measurement_2).pvalue,  # type: ignore
+            ks_2samp(
+                m_times_since_last_measurement_1, m_times_since_last_measurement_2
+            ).pvalue,  # type: ignore
+            ks_2samp(
+                t_times_since_last_measurement_1, t_times_since_last_measurement_2
+            ).pvalue,  # type: ignore
             # reaction_times_1,
             # reaction_times_2,
             # ks_2samp(reaction_times_1, reaction_times_2).pvalue,  # type: ignore
@@ -408,8 +412,8 @@ class DisparityExplainer:
         print(f"p={self.num_hemoglobin_measurements_pval:.3f}")
 
         print("Mortality Rate")
-        print(f"\t{self.log_1_name}: {self.mortality_rate_1*100:.2f}%")
-        print(f"\t{self.log_2_name}: {self.mortality_rate_2*100:.2f}%")
+        print(f"\t{self.log_1_name}: {self.mortality_rate_1 * 100:.2f}%")
+        print(f"\t{self.log_2_name}: {self.mortality_rate_2 * 100:.2f}%")
 
         print("Mean Age")
         print(f"\t{self.log_1_name}: {self.ages_1.mean():.2f}")
@@ -559,8 +563,8 @@ class DisparityExplainer:
                 # ),
                 {
                     "Metric": "Mortality Rate",
-                    self.log_1_name: f"{self.mortality_rate_1*100:.2f}%",
-                    self.log_2_name: f"{self.mortality_rate_2*100:.2f}%",
+                    self.log_1_name: f"{self.mortality_rate_1 * 100:.2f}%",
+                    self.log_2_name: f"{self.mortality_rate_2 * 100:.2f}%",
                     "%Δ": f"{_get_percent_change(self.mortality_rate_1, self.mortality_rate_2):.2f}%",
                     "P-Value": self.mortality_pvalue,
                     f"Significant (Bonferroni {bonferroni_correction_divisor})": self.mortality_pvalue
@@ -654,7 +658,9 @@ def get_mortality_rate(log: pd.DataFrame) -> float:
 
 
 def _get_age_series(log: pd.DataFrame) -> pd.Series:
-    return log.groupby(DEFAULT_TRACEID_KEY).apply(lambda group: group.iloc[0]["anchor_age"], include_groups=False)  # type: ignore
+    return log.groupby(DEFAULT_TRACEID_KEY).apply(
+        lambda group: group.iloc[0]["anchor_age"], include_groups=False
+    )  # type: ignore
 
 
 def get_mean_age(log: pd.DataFrame) -> float:
@@ -744,10 +750,10 @@ def investigate_common_variants(
 
     print(log_1_name)
     for trace, count in top_1:
-        print(f"\t({100*count/c1.total():.2f}): {trace}")
+        print(f"\t({100 * count / c1.total():.2f}): {trace}")
     print(log_2_name)
     for trace, count in top_2:
-        print(f"\t({100*count/c2.total():.2f}): {trace}")
+        print(f"\t({100 * count / c2.total():.2f}): {trace}")
 
 
 def find_common_variant_mismatches(
@@ -801,16 +807,24 @@ def get_low_hemoglobin_reactions(
     ) -> tuple[list[tuple[pd.Series, pd.Series]], int]:
         # Retun 1) List of event, reaction pairs, and 2) number of measurements without reaction
         case_log = case_log.sort_values(by=[DEFAULT_NAME_KEY, DEFAULT_TIMESTAMP_KEY])
-        measurements: pd.DataFrame = case_log[case_log["event_type"] == "hemoglobin_measurement"]  # type: ignore
+        measurements: pd.DataFrame = case_log[
+            case_log["event_type"] == "hemoglobin_measurement"
+        ]  # type: ignore
         if low_hemoglobin_threshold is not None:
-            low_measurements: pd.DataFrame = measurements[measurements["hemoglobin_value"] < low_hemoglobin_threshold]  # type: ignore
+            low_measurements: pd.DataFrame = measurements[
+                measurements["hemoglobin_value"] < low_hemoglobin_threshold
+            ]  # type: ignore
         else:
             low_measurements = measurements.copy()
-        transfusions: pd.DataFrame = case_log[case_log["event_type"] == "blood_transfusion"]  # type: ignore
+        transfusions: pd.DataFrame = case_log[
+            case_log["event_type"] == "blood_transfusion"
+        ]  # type: ignore
 
         def get_reaction(row: pd.Series) -> pd.Series | None:
             timestamp = row[DEFAULT_TIMESTAMP_KEY]
-            reaction_df: pd.DataFrame = transfusions[transfusions[DEFAULT_TIMESTAMP_KEY] > timestamp]  # type: ignore
+            reaction_df: pd.DataFrame = transfusions[
+                transfusions[DEFAULT_TIMESTAMP_KEY] > timestamp
+            ]  # type: ignore
             if not reaction_df.empty:
                 reaction = reaction_df.iloc[0]
                 reaction_timestamp = reaction[DEFAULT_TIMESTAMP_KEY]

@@ -1,3 +1,8 @@
+# A behavior range is a range (of case IDs) where the behavior of the event log
+# has no concept drift. 
+# So, if an event log has 1000 cases, and has a drift after 500, [1,500] is a behavioral range,
+# as well as [501,1000].
+
 ostovar:
   base_path: "ostovar"
   behavior_ranges: [

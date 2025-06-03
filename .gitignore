@@ -6,6 +6,7 @@ control_flow/ceravolo_raw/*.csv
 # Results
 *.pkl
 *.pkl.gz
+*.csv
 
 # Jupyter Notebooks
 *.ipynb
@@ -14,6 +15,9 @@ control_flow/ceravolo_raw/*.csv
 *.tex
 *.pdf
 
+
+# Other
+.python-version
 
 # Languages: Python (1)
 

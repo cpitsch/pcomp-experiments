@@ -1,24 +1,31 @@
-[tool.poetry]
-name = "pcompsyntheticlogruns"
+[project]
+name = "pcomp-experiments"
 version = "0.1.0"
 description = ""
-authors = ["Cameron Pitsch <cameron.pitsch@rwth-aachen.de>"]
 readme = "README.md"
+authors = [{ name = "Cameron Pitsch", email = "cameron.pitsch@rwth-aachen.de" }]
+requires-python = ">=3.10"
+dependencies = [
+    "mpire>=2.10.0",
+    "nbformat>=4.2.0",
+    "numpy<2.0",
+    "pcomp",
+    "plotly>=6.0.1",
+    "pydantic>=2.9.2",
+    "pyyaml>=6.0.2",
+    "seaborn>=0.13.2",
+    "streamlit>=1.38",
+]
 
-[tool.poetry.dependencies]
-python = "^3.10, <3.13"
-numpy = "<2.0"
-streamlit = "^1.38.0"
-pcomp = {path = "../pcomp"}
-plotly = "^5.24.1"
-pyyaml = "^6.0.2"
-pydantic = "^2.9.2"
-nbformat = ">=4.2.0"
+[dependency-groups]
+dev = [
+    "ipykernel>=6.29.5",
+    "mypy>=1.15.0",
+    "pandas-stubs>=2.2.3.250308",
+    "plotly-stubs>=0.0.5",
+    "types-pyyaml>=6.0.12.20250402",
+    "types-seaborn>=0.13.2.20250111",
+]
 
-
-[tool.poetry.group.dev.dependencies]
-ipykernel = "^6.29.5"
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+[tool.uv.sources]
+pcomp = { path = "../pcomp" }

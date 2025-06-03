@@ -2,14 +2,16 @@
 
 ### Job Parameters
 #SBATCH --array=1-5
-#SBATCH --job-name=pcomp_rtraffic_wt
+#SBATCH --job-name=pcomp_sensitivity_wt
 #SBATCH --time=09:00:00
-#SBATCH --cpus-per-task=16
-#SBATCH --partition=c23ms
-#SBATCH --output=some_file_weighted_time.txt
+#SBATCH --cpus-per-task=32
+#SBATCH --partition=c23mm
+#SBATCH --output=pcomp_sensitivity_wt.txt
 
 ### Program Code
 cd ~/pcomp-experiments/sensitivity_analysis
 source ../.venv/bin/activate
+
+mkdir weighted_time_outputs
 
 python run_synthetic_road_traffic_logs.py --seed ${SLURM_ARRAY_TASK_ID} --cores ${SLURM_JOB_CPUS_PER_NODE} --weighted-time > weighted_time_outputs/${SLURM_ARRAY_TASK_ID}.txt
