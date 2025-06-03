@@ -12,4 +12,6 @@
 cd ~/pcomp-experiments/sensitivity_analysis
 source ../.venv/bin/activate
 
+mkdir weighted_time_outputs
+
 python run_synthetic_road_traffic_logs.py --seed ${SLURM_ARRAY_TASK_ID} --cores ${SLURM_JOB_CPUS_PER_NODE} --weighted-time > weighted_time_outputs/${SLURM_ARRAY_TASK_ID}.txt

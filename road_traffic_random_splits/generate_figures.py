@@ -5,7 +5,7 @@ import pandas as pd
 import seaborn as sns
 
 RESULTS_BASE_PATH = Path("results")
-FIGURES_BASE_PATH = Path("figures")
+FIGURES_BASE_PATH = Path("figures_after")
 
 
 def generate_fpr_plot(result_dir: Path, fpr_column_name: str):
@@ -110,6 +110,78 @@ def generate_combined_fpr_plot(
     figure_path.parent.mkdir(parents=True, exist_ok=True)
 
     fig.savefig(figure_path, bbox_inches="tight")
+
+
+# def generate_total_fpr_plot(
+#     fpr_column_name: str,
+#     filename: str,
+# ):
+#     """Create and save a plot of the False Positive Rate (FPR) (Or: Type-I Error Rate)
+#     as a function of the significance level, $\alpha$ for both techniques and both perspectives.
+#
+#     Creates two plots next to each other, one for control flow, and one for timed-control-flow.
+#     The hue is the chosen technique
+#
+#     Args:
+#         fpr_column_name (str): The name to use for the False Positive Rate in the figure.
+#         filename (str): The filename to which to save the figure
+#     """
+#     cf_permutation_df = pd.read_csv(
+#         RESULTS_BASE_PATH / "permutation_cf" / "summary.csv"
+#     )
+#     time_permutation_df = pd.read_csv(
+#         RESULTS_BASE_PATH / "permutation_time" / "summary.csv"
+#     )
+#     cf_bootstrap_df = pd.read_csv(RESULTS_BASE_PATH / "bootstrap_cf" / "summary.csv")
+#     time_bootstrap_df = pd.read_csv(
+#         RESULTS_BASE_PATH / "bootstrap_time" / "summary.csv"
+#     )
+#     cf_permutation_df["Technique"] = "Permutation Test"
+#     cf_permutation_df["Perspective"] = "Control Flow"
+#     time_permutation_df["Technique"] = "Permutation Test"
+#     time_permutation_df["Perspective"] = "Timed Control Flow"
+#     cf_bootstrap_df["Technique"] = "Bootstrap Test"
+#     cf_bootstrap_df["Perspective"] = "Control Flow"
+#     time_bootstrap_df["Technique"] = "Bootstrap Test"
+#     time_bootstrap_df["Perspective"] = "Timed Control Flow"
+#     df = pd.concat(
+#         [cf_permutation_df, cf_bootstrap_df, time_permutation_df, time_bootstrap_df]
+#     )
+#
+#     SIG_LVL_COLUMN = r"Significance Level $\alpha$"
+#     FPR_COLUMN = fpr_column_name
+#     plot_df = pd.DataFrame(
+#         [
+#             {
+#                 SIG_LVL_COLUMN: alpha,
+#                 FPR_COLUMN: technique_df[technique_df["pval"] < alpha].shape[0]
+#                 / technique_df.shape[0],
+#                 "Technique": technique,
+#                 "Perspective": perspective,
+#             }
+#             for (technique, perspective), technique_df in df.groupby(
+#                 by=["Technique", "Perspective"]
+#             )
+#             for alpha in set(technique_df["pval"].unique()).union([0.0, 1.0])
+#         ]
+#     )
+#
+#     g = sns.FacetGrid(plot_df, col="Perspective", hue="Technique")
+#     g.map(sns.lineplot, SIG_LVL_COLUMN, FPR_COLUMN)
+#     fig, ax = plt.subplots()
+#     sns.lineplot(data=plot_df, x=SIG_LVL_COLUMN, y=FPR_COLUMN, ax=ax, hue="Technique")
+#     sns.move_legend(ax, "lower right")
+#     ax.plot([0, 1], [0, 1], color="gray", linestyle="--")
+#
+#     ax.set_xlim(0, 1)
+#     ax.set_ylim(0, 1)
+#
+#     # ax.legend(ax.get_lines(), ["Observed", "Expected"])
+#
+#     figure_path = FIGURES_BASE_PATH / filename
+#     figure_path.parent.mkdir(parents=True, exist_ok=True)
+#
+#     fig.savefig(figure_path, bbox_inches="tight")
 
 
 if __name__ == "__main__":

@@ -13,6 +13,7 @@ from matplotlib.figure import Figure
 from pm4py import read_xes  # type: ignore
 
 FIGURES_BASE_DIR = Path("figures")
+LOGS_BASE_DIR = Path("road_traffic_synthetic_logs")
 
 
 RESULTS_BASE_DIR = Path("results")
@@ -86,7 +87,7 @@ def get_log_paths(seed: int, probability: float, severity: float) -> tuple[Path,
     sev = _num_to_str_truncate(severity)
 
     base_path = Path(
-        "road_traffic_synthetic",
+        LOGS_BASE_DIR,
         str(seed),
         "PartialOrderCreator",
         f"LogSplitter_frac_0.5_seed_{seed}",

@@ -12,11 +12,13 @@ import streamlit as st
 from log_analysis import plot_distributions_plotly, plot_distributions_seaborn
 from matplotlib.axes import Axes
 from pcomp.emd.comparators.permutation_test import PermutationTestComparisonResult
-from pm4py import read_xes
+from pm4py import read_xes  # type: ignore
 
 RESULTS_PATH = Path("results")
 
 
+# WARN: This is outdated. Only the weighted time experiment is run now, and saved to the
+# "results" directory
 WEIGHTED_TIME_RESULTS_PATH = Path("road_traffic_synthetic_results_WEIGHTED_TIME")
 
 

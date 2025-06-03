@@ -6,6 +6,7 @@ control_flow/ceravolo_raw/*.csv
 # Results
 *.pkl
 *.pkl.gz
+*.csv
 
 # Jupyter Notebooks
 *.ipynb

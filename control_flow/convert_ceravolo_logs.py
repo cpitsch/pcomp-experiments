@@ -4,6 +4,10 @@ import pandas as pd
 from pm4py import write_xes
 from tqdm.auto import tqdm
 
+# I have since replaced this script with a rust wrapper around the process_mining
+# crate. But it does the same thing.
+# `csv2xes -i ceravolo_raw -o testing_logs/ceravolo --case-id case --activity event --timestamp completeTime`
+
 INPUT_CASEID_COLUMN = "case"
 INPUT_ACTIVITY_COLUMN = "event"
 INPUT_COMPLETE_TIMESTAMP_COLUMN = "completeTime"
