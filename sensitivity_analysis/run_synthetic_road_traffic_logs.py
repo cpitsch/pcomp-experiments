@@ -134,8 +134,12 @@ class Instance:
     def get_logs(self) -> tuple[pd.DataFrame, pd.DataFrame]:
         log_1_path, log_2_path = self.log.get_log_paths()
         return (
-            import_log(log_1_path.as_posix(), show_progress_bar=False),
-            import_log(log_2_path.as_posix(), show_progress_bar=False),
+            import_log(
+                log_1_path.as_posix(), show_progress_bar=False, variant="rustxes"
+            ),
+            import_log(
+                log_2_path.as_posix(), show_progress_bar=False, variant="rustxes"
+            ),
         )
 
     def get_comparator(
