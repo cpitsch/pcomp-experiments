@@ -8,4 +8,5 @@ Repository for the Evaluation of the pcomp process hypothesis testing technique
 
 - All experiments were performed on the version of the [pcomp](https://github.com/cpitsch/pcomp) project with the commit hash:
     - [`76f16a43f76b1cd428d9a4be6c9fe1ed251aff4d`](https://github.com/cpitsch/pcomp/tree/76f16a43f76b1cd428d9a4be6c9fe1ed251aff4d) (ICPM 2025)
+        - Where the `event_log_mutator` was used, this was based on its commit with hash [`d2afb17d5d59bf8fe174a79fcc642a3cc2c8db74`](https://github.com/cpitsch/event_log_mutator/tree/d2afb17d5d59bf8fe174a79fcc642a3cc2c8db74)
     - [`9aaac7994ed0e026d63df216f56649de73a4692a`](https://github.com/cpitsch/pcomp/tree/9aaac7994ed0e026d63df216f56649de73a4692a) (Thesis)
