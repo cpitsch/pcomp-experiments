@@ -191,6 +191,10 @@ def generate_service_time_distribution_plots():
             BASE_DIR / f"prob_{prob}_sev_{sev}.pdf",
             bbox_inches="tight",
         )
+        fig.savefig(
+            BASE_DIR / f"prob_{prob}_sev_{sev}.svg",
+            bbox_inches="tight",
+        )
         plt.close(fig)
 
 

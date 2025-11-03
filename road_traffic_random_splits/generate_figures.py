@@ -201,8 +201,20 @@ if __name__ == "__main__":
         "fpr_t1er_cf_combined.pdf",
     )
     generate_combined_fpr_plot(
+        RESULTS_BASE_PATH / "permutation_cf",
+        RESULTS_BASE_PATH / "bootstrap_cf",
+        "Type I Error Rate",
+        "fpr_t1er_cf_combined.svg",
+    )
+    generate_combined_fpr_plot(
         RESULTS_BASE_PATH / "permutation_time",
         RESULTS_BASE_PATH / "bootstrap_time",
         "Type I Error Rate",
         "fpr_t1er_time_combined.pdf",
+    )
+    generate_combined_fpr_plot(
+        RESULTS_BASE_PATH / "permutation_time",
+        RESULTS_BASE_PATH / "bootstrap_time",
+        "Type I Error Rate",
+        "fpr_t1er_time_combined.svg",
     )
