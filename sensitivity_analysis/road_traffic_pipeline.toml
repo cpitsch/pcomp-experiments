@@ -6,7 +6,8 @@ compress_output = true
 [pipeline]
 seed = "1..=10"
 [[pipeline.mutations]]
-type = "PartialOrderCreator"
+type = "SojournStartAdder"
+key = "start_timestamp"
 
 [[pipeline.mutations]]
 type = "LogSplitter"
